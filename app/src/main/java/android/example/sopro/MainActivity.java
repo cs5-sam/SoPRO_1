@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -24,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     TextView registerText;
 
     // INPUT API URL FOR LOGIN
-    final String url_Login = "";
+    final String url_Login = "http://node-dev.ap-southeast-1.elasticbeanstalk.com/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +53,21 @@ public class MainActivity extends AppCompatActivity {
                 String email = loginEmail.getText().toString();
                 String password = loginPassword.getText().toString();
 
-                new LoginUser().execute(email,password);
+                Model model = Model.getInstance(MainActivity.this,getApplication());
+                model.login(email, password);
+
+                /*new LoginUser().execute(email,password);*/
             }
         });
     }
-
-    public class LoginUser extends AsyncTask<String,Void,String>{
+    /*public class LoginUser extends AsyncTask<String,Void,String>{
 
         @Override
         protected String doInBackground(String... strings) {
             String email = strings[0];
             String password = strings[1];
 
+            MediaType mediaType = MediaType.parse("application/json");
             OkHttpClient okHttpClient = new OkHttpClient();
             RequestBody formBody = new FormBody.Builder()
                     .add("user_id",email)
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             Request request = new Request.Builder()
                     .url(url_Login)
                     .post(formBody)
+                    .addHeader("Content-Type", "application/json")
                     .build();
             Response response = null;
             try {
@@ -90,6 +96,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
+    }*/
 
 }
