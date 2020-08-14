@@ -13,6 +13,8 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+
 public class WebAPI implements API {
     public static final String BASE_URL = "http://node-dev.ap-southeast-1.elasticbeanstalk.com/";
     private final Application mApplication;
@@ -22,15 +24,14 @@ public class WebAPI implements API {
         mApplication = application;
         mRequestQueue = Volley.newRequestQueue(application);
     }
-    public void login(String name,String password){
+    public void login(final String name, final String password){
 
         String url = BASE_URL + "login";
         JSONObject jsonObject = new JSONObject();
 
         try {
-            jsonObject.put("username",new JSONObject(name));
-            jsonObject.put("password",new JSONObject(password));
-
+            jsonObject.put("username",name);
+            jsonObject.put("password",password);
 
             Response.Listener<JSONObject> successListener = new Response.Listener<JSONObject>() {
                 @Override

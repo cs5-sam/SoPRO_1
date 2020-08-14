@@ -2,6 +2,8 @@ package android.example.sopro;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,12 +14,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import okhttp3.FormBody;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,7 +30,13 @@ public class MainActivity extends AppCompatActivity {
     TextView registerText;
 
     // INPUT API URL FOR LOGIN
-    final String url_Login = "http://node-dev.ap-southeast-1.elasticbeanstalk.com/login";
+    final String BASE_URL = "http://node-dev.ap-southeast-1.elasticbeanstalk.com/";
+    private String LOGIN_URL = BASE_URL + "login";
+    private String name = "";
+    private String password = "";
+    public static final String KEY_USERNAME = "username";
+    public static final String KEY_PASSWORD = "password";
+    AlertDialog.Builder builder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +47,12 @@ public class MainActivity extends AppCompatActivity {
         loginPassword = findViewById(R.id.password_input);
         loginBtn = findViewById(R.id.login_btn);
         registerText = findViewById(R.id.register_text);
+        builder = new AlertDialog.Builder(MainActivity.this);
 
         registerText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this,RegisterActivity.class);
+                Intent i = new Intent(MainActivity.this, RegisterActivity.class);
                 startActivity(i);
                 finish();
             }
@@ -50,52 +61,72 @@ public class MainActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = loginEmail.getText().toString();
-                String password = loginPassword.getText().toString();
+                String email = loginEmail.getText().toString().trim();
+                String loginStringpassword = loginPassword.getText().toString().trim();
+                name = email.trim();
+                password = loginStringpassword.trim();
 
-                Model model = Model.getInstance(MainActivity.this,getApplication());
-                model.login(email, password);
+                if(name.equals("") || password.equals("")){
+                    builder.setTitle("Something went wrong");
+                    displayAlert("Enter a valid Username/Password");
+                }
+                else{
+                    StringRequest stringRequest = new StringRequest(Request.Method.POST, LOGIN_URL, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                /*JSONArray jsonArray = new JSONArray(response);
+                                JSONObject jsonObject = jsonArray.getJSONObject(0);*/
+                                String code = response;
+                                if(code.equals("Wrong Credential")){
+                                    builder.setTitle("Login Error...");
+                                    displayAlert("message");
+                                }
+                                else{
+                                    Intent i =  new Intent(MainActivity.this,HomeActivity.class);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("name","name");
+                                    i.putExtras(bundle);
+                                    startActivity(i);
+                                    finish();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                            error.printStackTrace();
+                        }
+                    })
+                    {
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError {
+                            Map<String,String> params = new HashMap<>();
+                            params.put("username",name);
+                            params.put("password",password);
+                            return params;
+                        }
+                    };
+                    MySingleton.getInstance(MainActivity.this).addToRequestque(stringRequest);
+                }
 
-                /*new LoginUser().execute(email,password);*/
             }
         });
     }
-    /*public class LoginUser extends AsyncTask<String,Void,String>{
+    public void displayAlert(String message){
 
-        @Override
-        protected String doInBackground(String... strings) {
-            String email = strings[0];
-            String password = strings[1];
-
-            MediaType mediaType = MediaType.parse("application/json");
-            OkHttpClient okHttpClient = new OkHttpClient();
-            RequestBody formBody = new FormBody.Builder()
-                    .add("user_id",email)
-                    .add("user_password",password)
-                    .build();
-            Request request = new Request.Builder()
-                    .url(url_Login)
-                    .post(formBody)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
-            Response response = null;
-            try {
-                response = okHttpClient.newCall(request).execute();
-                if(response.isSuccessful()){
-                    String result = response.body().string();
-                    if(result.equalsIgnoreCase("login")){
-                        Intent i = new Intent(MainActivity.this,HomeActivity.class);
-                        startActivity(i);
-                        finish();
-                    }else{
-                        Toast.makeText(MainActivity.this, "Email or password mismatched", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }catch (Exception e){
-                e.printStackTrace();
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                loginEmail.setText("");
+                loginPassword.setText("");
             }
-            return null;
-        }
-    }*/
-
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
 }
