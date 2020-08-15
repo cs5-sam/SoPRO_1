@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                                     displayAlert("message");
                                 }
                                 else{
-                                    Intent i =  new Intent(MainActivity.this,HomeActivity.class);
+                                    Intent i =  new Intent(MainActivity.this,Home.class);
                                     Bundle bundle = new Bundle();
                                     bundle.putString("name","name");
                                     i.putExtras(bundle);

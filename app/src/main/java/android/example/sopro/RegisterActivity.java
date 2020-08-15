@@ -126,6 +126,8 @@ public class RegisterActivity extends AppCompatActivity {
                     emailEdit.setText("");
                 }
                 else if(message.equals("Registration SuccessFull " + reg_name)){
+                    Intent i = new Intent(RegisterActivity.this,MainActivity.class);
+                    startActivity(i);
                     finish();
                 }
                 else if(message.equals("Reg FAILED")){
